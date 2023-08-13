@@ -97,17 +97,65 @@ export const Dashboard = () => {
       }
 
       if (kuisionerDivLayanan) {
-        // Lakukan otomatisasi untuk #box-kuisioner-layanan
-        // ...
+        const rows = await kuisionerDivLayanan.$$("table tbody tr");
+
+        for (const row of rows) {
+          const tdValue = await row.$eval("td:nth-child(2)", (td) =>
+            td.textContent.trim()
+          );
+
+          if (tdValue === "2022/Genap - Potret Layanan Universitas Udayana") {
+            const link = await row.$("td:last-child a");
+            if (link) {
+              await link.click();
+              let input1 = 5;
+              for (let i = 62; i <= 80; i++) {
+                let real1 = i * 5 + input1 - 5;
+                await page.click(`label[for="jawaban_${i}_${real1}"]`);
+              }
+              const buttonElement = await page.$("#btn-end");
+              if (buttonElement) {
+                await buttonElement.click();
+                console.log("Tombol berhasil diklik.");
+              }
+            }
+          }
+          if (
+            tdValue ===
+            "2022/Genap - Kuesioner Pencegahan dan Penanganan Kekerasan Seksual Tahun 2023"
+          ) {
+            const link = await row.$("td:last-child a");
+            if (link) {
+              await link.click();
+              let input2 = 1;
+              for (let i = 6761; i <= 6779; i++) {
+                let real2 = (i - 6761) * 3 + 22609 + input2;
+                await page.click(`label[for="jawaban_${i}_${real2}"]`);
+              }
+              const inputValue =
+                "Sebaiknya diberikan sanksi jika terdapat pelanggaran";
+
+              const inputElement = await page.$(
+                'input[name="jawaban[6780][jawaban]"].jawaban-option'
+              );
+
+              if (inputElement) {
+                await inputElement.type(inputValue);
+                console.log("Teks berhasil ditambahkan:", inputValue);
+              }
+              const buttonElement = await page.$("#btn-end");
+              if (buttonElement) {
+                await buttonElement.click();
+                console.log("Tombol berhasil diklik.");
+              }
+            }
+          }
+        }
       } else {
         console.log(
           'Elemen div dengan id "box-kuisioner-layanan" tidak ditemukan.'
         );
       }
-
-      // Lakukan otomatisasi sesuai kebutuhan
-      // Contoh: Mengisi input field dengan nilai tertentu
-      await page.type('input[name="username"]', "nama_pengguna_anda");
 
       // Simpan hasil atau tampilkan pesan sukses
       setStatus("Otomatisasi selesai");
