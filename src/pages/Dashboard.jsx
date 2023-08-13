@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { Player } from "@lottiefiles/react-lottie-player";
+import puppeteer from "puppeteer";
 
 const theme = extendTheme({
   styles: {
@@ -36,7 +37,90 @@ export const Dashboard = () => {
 
   const [isButtonClicked, setIsButtonClicked] = useState(false);
 
+  const startAutomation = async () => {
+    try {
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      await page.goto("https://kuisioner-ng.unud.ac.id/dashboard");
+
+      // Memilih Kuisioner
+      const [kuisionerDivPbm, kuisionerDivLayanan, kuisionerDivVisiMisi] =
+        await Promise.all([
+          page.$("#box-kuisioner-pbm"),
+          page.$("#box-kuisioner-layanan"),
+          page.$("#box-kuisioner-visi-misi"),
+        ]);
+
+      if (kuisionerDivPbm) {
+        const links = await kuisionerDivPbm.$$(
+          "table tbody tr td:last-child a"
+        );
+
+        for (const link of links) {
+          const spanValue = await link.$eval(
+            "span.badge",
+            (span) => span.textContent
+          );
+
+          if (spanValue === "Kosong" || spanValue === "Sebagian") {
+            await link.click();
+            let awal = 5;
+            for (let i = 1; i <= 40; i++) {
+              if (i == 1) {
+                await page.click('label[for="jawaban_1_5"]');
+              } else {
+                let jawab = i * 5 + awal;
+                await page.click(`label[for="jawaban_${i}_${jawab}"]`);
+              }
+            }
+            const inputValue = "Seluruh pelaksanaan dari matkul ini sudah baik";
+
+            const inputElement = await page.$(
+              'input[name="jawaban[41][jawaban]"].jawaban-option'
+            );
+
+            if (inputElement) {
+              await inputElement.type(inputValue);
+              console.log("Teks berhasil ditambahkan:", inputValue);
+            }
+            const buttonElement = await page.$("#btn-end");
+            if (buttonElement) {
+              await buttonElement.click();
+              console.log("Tombol berhasil diklik.");
+            }
+          }
+        }
+      } else {
+        console.log(
+          'Elemen div dengan id "box-kuisioner-pbm" tidak ditemukan.'
+        );
+      }
+
+      if (kuisionerDivLayanan) {
+        // Lakukan otomatisasi untuk #box-kuisioner-layanan
+        // ...
+      } else {
+        console.log(
+          'Elemen div dengan id "box-kuisioner-layanan" tidak ditemukan.'
+        );
+      }
+
+      // Lakukan otomatisasi sesuai kebutuhan
+      // Contoh: Mengisi input field dengan nilai tertentu
+      await page.type('input[name="username"]', "nama_pengguna_anda");
+
+      // Simpan hasil atau tampilkan pesan sukses
+      setStatus("Otomatisasi selesai");
+
+      await browser.close();
+    } catch (error) {
+      setStatus("Terjadi kesalahan saat otomatisasi");
+      console.error(error);
+    }
+  };
+
   const handleButtonClick = () => {
+    startAutomation();
     setIsButtonClicked(true);
   };
 
